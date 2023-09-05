@@ -71,7 +71,7 @@
             </p>
         </noscript>
         <form action="" onsubmit="return false" >
-            <p><label for="url">変換するテキスト</label></p>
+            <p><label for="text_input">変換するテキスト</label></p>
             <textarea name="text_input" id="text_input" cols="30" rows="10" v-model="textInput"></textarea>
         </form>
 <!--        <aside src="ad1.html" frameborder="0"></aside>-->
@@ -123,33 +123,53 @@
                         return [value[1], value[0]];
                     })
                 )
+
+                const zenMark = [
+                    "！", "＂", "＃", "＄", "％", "＆", "＇", "（", "）", "＊", "＋", "，", "－", "．", "／", "：", "；",
+                    "＜", "＝", "＞", "？", "＠", "［", "＼", "］", "＾", "＿", "｀", "｛", "｜", "｝", "～"]
+                const hanMark = [
+                    "!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";",
+                    "<", "=", ">", "?", "@", "[", "\\", "]", "^", "_", "`", "{", "|", "}", "~"
+                ]
+                console.log(kanaMapZenToHan)
+                zenMark.forEach((v, i) => {
+                    kanaMapZenToHan[v] = hanMark[i]
+                })
+
+
                 console.log(kanaMapHanToZen)
 
-                const zenKata = Vue.computed(() =>
-                    textInput.value?.toString().
-                        replace(new RegExp('(' + Object.keys(kanaMapHanToZen).join('|') + ')', 'g'), function (match) {
-                            return kanaMapHanToZen[match];
-                        })
+                const zenKata = Vue.computed(() => {
+                    let r = textInput.value?.toString().replace(/[A-Za-z0-9]/g, function (s) {
+                        return String.fromCharCode(s.charCodeAt(0) + 0xFEE0);
+                    }).replace(new RegExp('(' + Object.keys(kanaMapHanToZen).join('|') + ')', 'g'), function (match) {
+                        return kanaMapHanToZen[match];
+                    }).replace(/-/g, 'ー')
                         .replace(/゛/g, 'ﾞ')
-                        .replace(/゜/g, 'ﾟ').
-                        replace(/[\u3041-\u3096]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60)
+                        .replace(/゜/g, 'ﾟ').replace(/[\u3041-\u3096]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60)
                     )
-                )
+                    hanMark.forEach((v, i) => {
+                        r = r?.replace(new RegExp('\\' + v, 'g'), zenMark[i])
+                    })
+                    return r
+                })
                 const zenHira = Vue.computed(() =>
                     zenKata.value?.toString().replace(/[\u30A1-\u30FA]/g, ch =>
                         String.fromCharCode(ch.charCodeAt(0) - 0x60)
                     )
                 )
-                const hanKata = Vue.computed(() =>
-                    zenKata.value?.toString()
-                        .replace(new RegExp('(' + Object.keys(kanaMapZenToHan).join('|') + ')', 'g'), function (match) {
-                            return kanaMapZenToHan[match];
-                        })
+                const hanKata = Vue.computed(() => {
+                    let r = zenKata.value?.toString().replace(/[Ａ-Ｚａ-ｚ０-９]/g, function (s) {
+                        return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+                    }).replace(new RegExp('(' + Object.keys(kanaMapZenToHan).join('|') + ')', 'g'), function (match) {
+                        return kanaMapZenToHan[match];
+                    })
                         .replace(/゛/g, 'ﾞ')
                         .replace(/゜/g, 'ﾟ')
-                )
+                    return r
+                })
                 const countLine = (text) => {
-                    return (text?.match(/\n/g) || []).length + 1
+                    return (text?.match(/\n/g) || []).length + 3
                 }
 
                 return {
