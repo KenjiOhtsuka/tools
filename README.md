@@ -1,1 +1,1 @@
-https://kenjiphtsuka.github.io/tools
+https://kenjiohtsuka.github.io/tools
