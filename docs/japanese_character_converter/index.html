@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#" />
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta keywords="URL,destructor,decompose,analyze,parse" />
+    <meta
+        name="description"
+        content="テキストを、全角ひらがな、カタカナ、半角カタカナに変換します。" />
+
+    <meta property="og:site_name" content="URL Destructor" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="" />
+
+    <script src="vue.global.js" type="text/javascript"></script>
+    <title>URL Destructor - URL Analyzer</title>
+    <style>
+        .mono {
+            font-family: monospace, monospace;
+        }
+        .wrap {
+            white-space: break-spaces;
+            overflow-wrap: anywhere;
+            word-break: break-all;
+        }
+        .param-table tr td:first-child {
+            text-align: right;
+        }
+        table {
+            border-collapse: collapse;
+            border: black solid 1px;
+        }
+        @media (max-width < 600px) {
+            table {
+                width: 100%;
+            }
+        }
+        textarea {
+            width: 100%;
+            padding: 0.5em;
+            box-sizing: border-box;
+        }
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        section > section {
+            padding-left: 1em;
+        }
+        .caution {
+            color: red;
+        }
+        .ad {
+            text-align: center;
+            margin: 1em auto;
+        }
+    </style>
+</head>
+<body>
+    <aside class="ad">
+        <!-- admax -->
+<!--        <script src="https://adm.shinobi.jp/s/0f62bdb89bd188fa5c4a6271e042abe1"></script>-->
+        <!-- admax -->
+    </aside>
+    <main id="app">
+        <h1>テキスト変換</h1>
+        <noscript>
+            <p class="caution">
+                This page requires JavaScript to work properly.
+                Please enable JavaScript in your browser.
+            </p>
+        </noscript>
+        <form action="" onsubmit="return false" >
+            <p><label for="url">変換するテキスト</label></p>
+            <textarea name="text_input" id="text_input" cols="30" rows="10" v-model="textInput"></textarea>
+        </form>
+<!--        <aside src="ad1.html" frameborder="0"></aside>-->
+        <section>
+            <h2>全角ひらがな</h2>
+            <textarea name="zen_hira" id="zen_hira" cols="30" :rows="countLine(zenHira)" >{{ zenHira }}</textarea>
+        </section>
+        <section>
+            <h2>全角カタカナ</h2>
+            <textarea name="zen_kata" id="zen_kata" cols="30" :rows="countLine(zenKata)" readonly="readonly">{{ zenKata }}</textarea>
+        </section>
+        <section>
+            <h2>半角カタカナ</h2>
+            <textarea name="han_kata" id="han_kata" cols="30" :rows="countLine(hanKata)" readonly="readonly">{{ hanKata }}</textarea>
+        </section>
+    </main>
+<!--    <aside class="ad">-->
+<!--        <script src="https://adm.shinobi.jp/s/bc75a7fea67e9023b86d7d35e9e3feca"></script>-->
+<!--    </aside>-->
+    <script>
+        const {computed, toRef} = Vue
+
+        Vue.createApp({
+            setup(props, context) {
+                const textInput = toRef()
+                const kanaMapZenToHan = {
+                    "ガ": "ｶﾞ", "ギ": "ｷﾞ", "グ": "ｸﾞ", "ゲ": "ｹﾞ", "ゴ": "ｺﾞ",
+                    "ザ": "ｻﾞ", "ジ": "ｼﾞ", "ズ": "ｽﾞ", "ゼ": "ｾﾞ", "ゾ": "ｿﾞ",
+                    "ダ": "ﾀﾞ", "ヂ": "ﾁﾞ", "ヅ": "ﾂﾞ", "デ": "ﾃﾞ", "ド": "ﾄﾞ",
+                    "バ": "ﾊﾞ", "ビ": "ﾋﾞ", "ブ": "ﾌﾞ", "ベ": "ﾍﾞ", "ボ": "ﾎﾞ",
+                    "パ": "ﾊﾟ", "ピ": "ﾋﾟ", "プ": "ﾌﾟ", "ペ": "ﾍﾟ", "ポ": "ﾎﾟ",
+                    "ヴ": "ｳﾞ", "ヷ": "ﾜﾞ", "ヺ": "ｦﾞ",
+                    "ア": "ｱ", "イ": "ｲ", "ウ": "ｳ", "エ": "ｴ", "オ": "ｵ",
+                    "カ": "ｶ", "キ": "ｷ", "ク": "ｸ", "ケ": "ｹ", "コ": "ｺ",
+                    "サ": "ｻ", "シ": "ｼ", "ス": "ｽ", "セ": "ｾ", "ソ": "ｿ",
+                    "タ": "ﾀ", "チ": "ﾁ", "ツ": "ﾂ", "テ": "ﾃ", "ト": "ﾄ",
+                    "ナ": "ﾅ", "ニ": "ﾆ", "ヌ": "ﾇ", "ネ": "ﾈ", "ノ": "ﾉ",
+                    "ハ": "ﾊ", "ヒ": "ﾋ", "フ": "ﾌ", "ヘ": "ﾍ", "ホ": "ﾎ",
+                    "マ": "ﾏ", "ミ": "ﾐ", "ム": "ﾑ", "メ": "ﾒ", "モ": "ﾓ",
+                    "ヤ": "ﾔ", "ユ": "ﾕ", "ヨ": "ﾖ",
+                    "ラ": "ﾗ", "リ": "ﾘ", "ル": "ﾙ", "レ": "ﾚ", "ロ": "ﾛ",
+                    "ワ": "ﾜ", "ヲ": "ｦ", "ン": "ﾝ",
+                    "ァ": "ｧ", "ィ": "ｨ", "ゥ": "ｩ", "ェ": "ｪ", "ォ": "ｫ",
+                    "ッ": "ｯ", "ャ": "ｬ", "ュ": "ｭ", "ョ": "ｮ",
+                    "。": "｡", "、": "､", "ー": "ｰ", "「": "｢", "」": "｣", "・": "･"
+                }
+                const kanaMapHanToZen = Object.fromEntries(
+                    Object.entries(kanaMapZenToHan).map(function (value) {
+                        return [value[1], value[0]];
+                    })
+                )
+                console.log(kanaMapHanToZen)
+
+                const zenKata = Vue.computed(() =>
+                    textInput.value?.toString().
+                        replace(new RegExp('(' + Object.keys(kanaMapHanToZen).join('|') + ')', 'g'), function (match) {
+                            return kanaMapHanToZen[match];
+                        })
+                        .replace(/゛/g, 'ﾞ')
+                        .replace(/゜/g, 'ﾟ').
+                        replace(/[\u3041-\u3096]/g, ch => String.fromCharCode(ch.charCodeAt(0) + 0x60)
+                    )
+                )
+                const zenHira = Vue.computed(() =>
+                    zenKata.value?.toString().replace(/[\u30A1-\u30FA]/g, ch =>
+                        String.fromCharCode(ch.charCodeAt(0) - 0x60)
+                    )
+                )
+                const hanKata = Vue.computed(() =>
+                    zenKata.value?.toString()
+                        .replace(new RegExp('(' + Object.keys(kanaMapZenToHan).join('|') + ')', 'g'), function (match) {
+                            return kanaMapZenToHan[match];
+                        })
+                        .replace(/゛/g, 'ﾞ')
+                        .replace(/゜/g, 'ﾟ')
+                )
+                const countLine = (text) => {
+                    return (text?.match(/\n/g) || []).length + 1
+                }
+
+                return {
+                    textInput, zenHira, zenKata, hanKata, countLine
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
